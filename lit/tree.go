@@ -1,10 +1,8 @@
 package lit
 
 import (
-	"crypto/sha1"
 	"encoding/hex"
 	"sort"
-	"strconv"
 )
 
 const MODE = "100644"
@@ -19,9 +17,8 @@ func (tree *Tree) Type() string {
 }
 func (tree *Tree) Oid() string {
 	if tree.oid == nil {
-		hasher := sha1.New()
-		hasher.Write([]byte(tree.ToString()))
-		tmp := hex.EncodeToString(hasher.Sum(nil))
+		var dbObject DatabaseObject = tree
+		tmp := ComputeOid(&dbObject)
 		tree.oid = &tmp
 	}
 	return *tree.oid
@@ -50,6 +47,5 @@ func (tree *Tree) ToString() string {
 		oidString := string(oidByts)
 		result += MODE + " " + e.Path + "\x00" + oidString
 	}
-	result = tree.Type() + " " + strconv.Itoa(len(result)) + "\x00" + result
 	return result
 }

@@ -61,6 +61,10 @@ func compareFileBytes(t *testing.T, relativePath string) {
 	}
 	myFilePath := path.Join("my-repo", ".git", "objects", relativePath)
 	myBytes, err := readAndInflateFile(t, myFilePath)
+	if err != nil {
+		t.Errorf("Unable to read file: %s", myFilePath)
+		return
+	}
 
 	if bytes.Compare(myBytes, referenceBytes) != 0 {
 		t.Errorf("Bytes did not match\nfile: %s\nexpected: %s\nactual:   %s", myFilePath, hex.EncodeToString(referenceBytes), hex.EncodeToString(myBytes))
@@ -71,12 +75,10 @@ func compareFileBytes(t *testing.T, relativePath string) {
 func readAndInflateFile(t *testing.T, referenceFilePath string) ([]byte, error) {
 	referenceFile, err := os.Open(referenceFilePath)
 	if err != nil {
-		t.Errorf("Unable to open reference file: %s", referenceFilePath)
 		return nil, err
 	}
 	referenceReader, err := zlib.NewReader(referenceFile)
 	if err != nil {
-		t.Errorf("Unable to create reader for file: %s", referenceFilePath)
 		return nil, err
 	}
 	referenceBytes, err := io.ReadAll(referenceReader)

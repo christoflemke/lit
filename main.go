@@ -1,12 +1,14 @@
 package main
 
 import (
+	"io"
 	"io/fs"
 	"lit/lit"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 )
 
 var logger = log.New(os.Stderr, "", 0)
@@ -62,7 +64,20 @@ func commitCommand() {
 	tree := lit.Tree{Entries: entries}
 	var dbObject lit.DatabaseObject = &tree
 	db.Store(&dbObject)
-	logger.Println(ws.ListFiles())
+	author := lit.Author{
+		Email: os.ExpandEnv("$GIT_AUTHOR_EMAIL"),
+		Name:  os.ExpandEnv("$GIT_AUTHOR_NAME"),
+		Time:  time.Now(),
+	}
+	message, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		panic(err)
+	}
+	var commit = lit.Commit{Tree: &tree, Author: &author, Message: string(message)}
+	var commitObj lit.DatabaseObject = &commit
+	db.Store(&commitObj)
+
+	os.WriteFile(path.Join(gitPath, "HEAD"), []byte(commit.Oid()+"\n"), 0533)
 }
 
 func initCommand() {

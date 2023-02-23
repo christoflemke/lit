@@ -1,10 +1,7 @@
 package lit
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"path"
-	"strconv"
 )
 
 type Blob struct {
@@ -19,9 +16,8 @@ func (blob *Blob) Type() string {
 
 func (blob *Blob) Oid() string {
 	if blob.oid == nil {
-		hasher := sha1.New()
-		hasher.Write([]byte(blob.ToString()))
-		tmp := hex.EncodeToString(hasher.Sum(nil))
+		var dbObject DatabaseObject = blob
+		tmp := ComputeOid(&dbObject)
 		blob.oid = &tmp
 	}
 	return *blob.oid
@@ -29,7 +25,7 @@ func (blob *Blob) Oid() string {
 
 func (blob *Blob) ToString() string {
 	if blob.content == nil {
-		tmp := blob.Type() + " " + strconv.Itoa(len(blob.Data)) + "\x00" + string(blob.Data)
+		tmp := string(blob.Data)
 		blob.content = &tmp
 	}
 	return *blob.content
