@@ -14,7 +14,16 @@ func (o *Refs) headPath() string {
 }
 
 func (o *Refs) UpdateHead(oid string) {
-	err := os.WriteFile(o.headPath(), []byte(oid), 0644)
+	temp, err := os.CreateTemp(o.GitPath, "tmp-*")
+	if err != nil {
+		panic(err)
+	}
+	defer os.Remove(temp.Name())
+	_, err = temp.Write([]byte(oid))
+	if err != nil {
+		panic(err)
+	}
+	err = os.Rename(temp.Name(), o.headPath())
 	if err != nil {
 		panic(err)
 	}

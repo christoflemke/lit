@@ -2,6 +2,7 @@ package lit
 
 import (
 	"compress/zlib"
+	"errors"
 	"io"
 	"io/fs"
 	"os"
@@ -20,6 +21,9 @@ type Storable interface {
 func (d *Database) Store(storable Storable) {
 	blob := storable.ToDbObject()
 	objectPath := blob.FilePath(d.DbPath)
+	if _, err := os.Stat(objectPath); !errors.Is(err, os.ErrNotExist) {
+		return
+	}
 	objectFolder := blob.DirPath(d.DbPath)
 	err := d.mkObjectFolder(objectFolder)
 	temp := d.newTempFile(objectFolder)

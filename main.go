@@ -53,6 +53,7 @@ func commitCommand() {
 	}
 	ws := lit.Workspace{RootPath: dir}
 	db := lit.Database{DbPath: path.Join(gitPath, "objects")}
+	refs := lit.Refs{GitPath: gitPath}
 
 	var entries []lit.Entry
 	for _, path := range ws.ListFiles() {
@@ -75,10 +76,16 @@ func commitCommand() {
 		panic(err)
 	}
 
-	var commit = lit.Commit{Tree: &tree, Author: &author, Message: string(message)}
+	parent := refs.ReadHead()
+	var commit = lit.Commit{Tree: &tree, Author: &author, Message: string(message), Parent: parent}
 	db.Store(&commit)
+	refs.UpdateHead(commit.ToDbObject().Oid())
 
-	os.WriteFile(path.Join(gitPath, "HEAD"), []byte(commit.ToDbObject().Oid()+"\n"), 0533)
+	isRoot := ""
+	if parent == nil {
+		isRoot = "(root-commit)"
+	}
+	logger.Printf("%s %s %s", isRoot, commit.ToDbObject().Oid(), message)
 }
 
 func initCommand() {
