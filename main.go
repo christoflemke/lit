@@ -53,17 +53,18 @@ func commitCommand() {
 	}
 	ws := lit.Workspace{RootPath: dir}
 	db := lit.Database{DbPath: path.Join(gitPath, "objects")}
+
 	var entries []lit.Entry
 	for _, path := range ws.ListFiles() {
 		data := ws.ReadFile(path)
 		blob := lit.Blob{Data: data}
-		var dbObject lit.DatabaseObject = &blob
-		db.Store(&dbObject)
+		db.Store(&blob)
 		entries = append(entries, lit.Entry{Path: path, Blob: &blob})
 	}
+
 	tree := lit.Tree{Entries: entries}
-	var dbObject lit.DatabaseObject = &tree
-	db.Store(&dbObject)
+	db.Store(&tree)
+
 	author := lit.Author{
 		Email: os.ExpandEnv("$GIT_AUTHOR_EMAIL"),
 		Name:  os.ExpandEnv("$GIT_AUTHOR_NAME"),
@@ -73,11 +74,11 @@ func commitCommand() {
 	if err != nil {
 		panic(err)
 	}
-	var commit = lit.Commit{Tree: &tree, Author: &author, Message: string(message)}
-	var commitObj lit.DatabaseObject = &commit
-	db.Store(&commitObj)
 
-	os.WriteFile(path.Join(gitPath, "HEAD"), []byte(commit.Oid()+"\n"), 0533)
+	var commit = lit.Commit{Tree: &tree, Author: &author, Message: string(message)}
+	db.Store(&commit)
+
+	os.WriteFile(path.Join(gitPath, "HEAD"), []byte(commit.ToDbObject().Oid()+"\n"), 0533)
 }
 
 func initCommand() {

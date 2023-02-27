@@ -14,7 +14,8 @@ import (
 
 func TestObjectWrite(t *testing.T) {
 	dbpath := os.TempDir()
-	blob := lit.Blob{Data: []byte("hello\n")}
+	l := lit.Blob{Data: []byte("hello\n")}
+	blob := l.ToDbObject()
 
 	if blob.Oid() != "ce013625030ba8dba906f756967f9e9ca394464a" {
 		t.Errorf("blob.Oid() = %s, want: ce013625030ba8dba906f756967f9e9ca394464a", blob.Oid())
@@ -31,8 +32,7 @@ func TestObjectWrite(t *testing.T) {
 	}
 
 	database := lit.Database{DbPath: dbpath}
-	var dbObject lit.DatabaseObject = &blob
-	database.Store(&dbObject)
+	database.Store(&l)
 	bs, err := os.ReadFile(blob.FilePath(dbpath))
 	if err != nil {
 		panic(err)

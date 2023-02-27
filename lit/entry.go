@@ -6,5 +6,5 @@ type Entry struct {
 }
 
 func (e *Entry) Oid() string {
-	return e.Blob.Oid()
+	return e.Blob.ToDbObject().Oid()
 }

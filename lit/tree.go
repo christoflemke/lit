@@ -9,19 +9,10 @@ const MODE = "100644"
 
 type Tree struct {
 	Entries []Entry
-	oid     *string
 }
 
-func (tree *Tree) Type() string {
-	return "tree"
-}
-func (tree *Tree) Oid() string {
-	if tree.oid == nil {
-		var dbObject DatabaseObject = tree
-		tmp := ComputeOid(&dbObject)
-		tree.oid = &tmp
-	}
-	return *tree.oid
+func (tree *Tree) ToDbObject() *DbObject {
+	return &DbObject{StringRepresentation: tree.ToString(), StorageType: "tree"}
 }
 
 type byPath []Entry
@@ -40,11 +31,11 @@ func (tree *Tree) ToString() string {
 	sort.Sort(byPath(tree.Entries))
 	result := ""
 	for _, e := range tree.Entries {
-		oidByts, err := hex.DecodeString(e.Oid())
+		oidBytes, err := hex.DecodeString(e.Oid())
 		if err != nil {
 			panic(err)
 		}
-		oidString := string(oidByts)
+		oidString := string(oidBytes)
 		result += MODE + " " + e.Path + "\x00" + oidString
 	}
 	return result
